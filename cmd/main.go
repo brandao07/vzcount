@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"github.com/brandao07/vzcount/internal/hypixel"
+	"github.com/brandao07/vzcount/internal/bot"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
@@ -14,17 +13,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	hypixelAPIKey := os.Getenv("HYPIXEL_API_KEY")
+	botToken := os.Getenv("DISCORD_BOT_TOKEN")
 
-	hypeClient := hypixel.API{
-		URL: "https://api.hypixel.net/v2",
-		Key: hypixelAPIKey,
-	}
-
-	count, err := hypeClient.VampireZCount()
+	err = bot.Run(botToken)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Hypixel VampireZ Count: ", count)
 }

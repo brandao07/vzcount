@@ -11,6 +11,7 @@ import (
 
 const (
 	headerAPIKey = "API-Key"
+	baseURL      = "https://api.hypixel.net/v2"
 )
 
 var (
@@ -20,7 +21,6 @@ var (
 )
 
 type API struct {
-	URL string // Base URL for the Hypixel API
 	Key string // API key for authentication
 }
 
@@ -55,7 +55,7 @@ func (hype *API) playerCount() ([]byte, error) {
 		Timeout: 10 * time.Second,
 	}
 
-	req, err := http.NewRequest("GET", hype.URL+"/counts", nil)
+	req, err := http.NewRequest("GET", baseURL+"/counts", nil)
 
 	if err != nil {
 		return nil, err
