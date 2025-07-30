@@ -2,7 +2,6 @@ package data
 
 import "sync"
 
-// Define your struct
 type User struct {
 	APIKey string
 	State  bool
