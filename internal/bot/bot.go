@@ -10,7 +10,7 @@ import (
 
 func registerSlashCommands(discord *discordgo.Session) error {
 	_, err := discord.ApplicationCommandCreate(discord.State.User.ID, "", &discordgo.ApplicationCommand{
-		Name:        "vzqueue",
+		Name:        "start",
 		Description: "Start VampireZ queue monitoring",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
@@ -41,15 +41,20 @@ func registerSlashCommands(discord *discordgo.Session) error {
 		return err
 	}
 
+	_, err = discord.ApplicationCommandCreate(discord.State.User.ID, "", &discordgo.ApplicationCommand{
+		Name:        "stop",
+		Description: "Stop VampireZ queue monitoring",
+	})
+
 	return nil
 }
 
-func monitorVampireZQueue(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func startVampireZQueue(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if i.Type != discordgo.InteractionApplicationCommand {
 		return
 	}
 
-	if i.ApplicationCommandData().Name == "vzqueue" {
+	if i.ApplicationCommandData().Name == "start" {
 		var channelID, roleID string
 
 		userID := i.Member.User.ID
@@ -69,6 +74,29 @@ func monitorVampireZQueue(s *discordgo.Session, i *discordgo.InteractionCreate) 
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "🧛 Started VampireZ queue monitoring.",
+			},
+		})
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
+	}
+}
+
+func stopVampireZQueue(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	if i.Type != discordgo.InteractionApplicationCommand {
+		return
+	}
+
+	if i.ApplicationCommandData().Name == "stop" {
+
+		userID := i.Member.User.ID
+
+		data.UpdateUserState(userID, false)
+
+		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "🧛 Stopped VampireZ queue monitoring.",
 			},
 		})
 		if err != nil {
@@ -152,7 +180,8 @@ func Run(token string) error {
 	discord.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsDirectMessages | discordgo.IntentsMessageContent
 
 	// add a event handler
-	discord.AddHandler(monitorVampireZQueue)
+	discord.AddHandler(startVampireZQueue)
+	discord.AddHandler(stopVampireZQueue)
 	discord.AddHandler(register)
 	discord.AddHandler(handleModalSubmission)
 

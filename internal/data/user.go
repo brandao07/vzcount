@@ -29,3 +29,13 @@ func GetUser(userID string) (User, bool) {
 	data, ok := userMap[userID]
 	return data, ok
 }
+
+func UpdateUserState(userID string, state bool) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if user, ok := userMap[userID]; ok {
+		user.State = state
+		userMap[userID] = user
+	}
+}

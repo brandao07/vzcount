@@ -48,21 +48,19 @@ func VampireZQueue(discord *discordgo.Session, userID, channelID, roleID string,
 		isFirstRun      = true
 	)
 
-	user, ok := data.GetUser(userID)
-	if !ok {
-		log.Printf("User %s not found in data map\n", userID)
-		_, _ = discord.ChannelMessageSend(channelID, "User is not registered, try the `/register` command.")
-		return
-	}
-
-	client := &hypixel.API{
-		Key: user.APIKey,
-	}
-
 	for {
+		// I know shouldn't be here but like i'm too lazy
+		user, ok := data.GetUser(userID)
+		if !ok {
+			_, _ = discord.ChannelMessageSend(channelID, "User is not registered, try the `/register` command.")
+			return
+		}
+		client := &hypixel.API{
+			Key: user.APIKey,
+		}
 		if !user.State {
 			log.Printf("User %s is not enabled for VampireZ monitoring\n", userID)
-			data.SetUser(userID, user.APIKey, true)
+			data.UpdateUserState(userID, true)
 			return
 		}
 		count, err := client.VampireZCount()
