@@ -1,6 +1,6 @@
 # VampireZ Queue Monitor Bot 🦇
 
-A lightweight Discord bot designed to assist with monitoring and managing **VampireZ** queues, with additional utilities for your server.
+A lightweight Discord bot designed to assist with monitoring and managing **VampireZ** queues.
 
 Automatically tracks and notifies when a VampireZ lobby is filling up. Customize queue thresholds, ping roles, and channels to get alerts.
 
