@@ -72,8 +72,6 @@ func VampireZQueue(discord *discordgo.Session, userID, channelID, roleID string,
 			continue
 		}
 
-		log.Printf("Hypixel VampireZ Count: %d", count)
-
 		// Determine current queue state
 		if count >= config.QueueThreshold {
 			currentState = stateQueueable

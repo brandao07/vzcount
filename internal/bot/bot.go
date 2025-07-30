@@ -35,14 +35,6 @@ func registerSlashCommands(discord *discordgo.Session) error {
 	_, err = discord.ApplicationCommandCreate(discord.State.User.ID, "", &discordgo.ApplicationCommand{
 		Name:        "register",
 		Description: "Register your Hypixel API key.",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "key",
-				Description: "Your Hypixel API key",
-				Required:    true,
-			},
-		},
 	})
 
 	if err != nil {
@@ -91,14 +83,47 @@ func register(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	if i.ApplicationCommandData().Name == "register" {
+		modal := &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseModal,
+			Data: &discordgo.InteractionResponseData{
+				CustomID: "register_modal",
+				Title:    "Register API Key",
+				Components: []discordgo.MessageComponent{
+					discordgo.ActionsRow{
+						Components: []discordgo.MessageComponent{
+							discordgo.TextInput{
+								CustomID:    "api_key_input",
+								Label:       "Enter your Hypixel API key",
+								Style:       discordgo.TextInputShort,
+								Placeholder: "e.g. 01234567-89ab-cdef-0123-456789abcdef",
+								Required:    true,
+							},
+						},
+					},
+				},
+			},
+		}
+		err := s.InteractionRespond(i.Interaction, modal)
+		if err != nil {
+			log.Printf("Error sending modal: %v", err)
+		}
+	}
+}
+
+func handleModalSubmission(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	if i.Type != discordgo.InteractionModalSubmit {
+		return
+	}
+
+	if i.ModalSubmitData().CustomID == "register_modal" {
+		userID := i.Member.User.ID
 		var key string
 
-		userID := i.Member.User.ID
-
-		for _, opt := range i.ApplicationCommandData().Options {
-			switch opt.Name {
-			case "key":
-				key = opt.StringValue()
+		for _, c := range i.ModalSubmitData().Components {
+			for _, inner := range c.(*discordgo.ActionsRow).Components {
+				if input, ok := inner.(*discordgo.TextInput); ok && input.CustomID == "api_key_input" {
+					key = input.Value
+				}
 			}
 		}
 
@@ -107,7 +132,8 @@ func register(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "Registered your API key, you can now use the `/vzqueue` command.",
+				Content: "✅ Your API key has been registered!",
+				Flags:   discordgo.MessageFlagsEphemeral, // makes it visible only to the user
 			},
 		})
 		if err != nil {
@@ -128,6 +154,7 @@ func Run(token string) error {
 	// add a event handler
 	discord.AddHandler(monitorVampireZQueue)
 	discord.AddHandler(register)
+	discord.AddHandler(handleModalSubmission)
 
 	// open session
 	err = discord.Open()
